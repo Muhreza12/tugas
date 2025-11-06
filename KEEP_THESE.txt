@@ -1,0 +1,22 @@
+# KEEP THESE FILES (untuk di-ZIP)
+
+# Core application files
+main.py
+auth_ui_tiktok_style.py
+app_db_fixed.py
+dashboard_ui.py
+admin_dashboard.py
+penerbit_dashboard.py
+user_dashboard.py
+modern_notification.py
+
+# Configuration
+config.ini.example
+requirements.txt
+
+# Security
+.gitignore
+
+# Optional (jika ada)
+logo.ico
+logo.jpg

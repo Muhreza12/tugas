@@ -1,0 +1,19 @@
+# ============================================
+# Crypto Insight - Configuration Template
+# ============================================
+# 
+# INSTRUCTIONS:
+# 1. Copy file ini menjadi "config.ini"
+# 2. Isi DATABASE_URL dengan credential Railway kamu
+# 3. JANGAN commit config.ini ke git!
+#
+# ============================================
+
+[server]
+# Format Railway PostgreSQL:
+# postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require
+# 
+# Contoh:
+# DATABASE_URL=postgresql://postgres:your_password_here@your-host.railway.app:5432/railway?sslmode=require
+
+DATABASE_URL=postgresql://USERNAME:PASSWORD@HOST:PORT/DATABASE?sslmode=require

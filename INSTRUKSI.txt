@@ -1,0 +1,27 @@
+# INSTRUKSI CLEANUP PROJECT
+
+## LANGKAH 1: HAPUS FILE
+Jalankan: CLEANUP.bat
+
+Atau manual delete semua file di: DELETE_THESE.txt
+
+## LANGKAH 2: ZIP PROJECT
+Zip hanya file yang ada di: KEEP_THESE.txt
+
+Hasilnya:
+- main.py
+- auth_ui_tiktok_style.py
+- app_db_fixed.py
+- dashboard_ui.py
+- admin_dashboard.py
+- penerbit_dashboard.py
+- user_dashboard.py
+- modern_notification.py
+- config.ini.example
+- requirements.txt
+- .gitignore
+
+## LANGKAH 3: DEPLOY
+Upload ZIP ke server/repository
+
+DONE.

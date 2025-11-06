@@ -1,0 +1,54 @@
+# DELETE THESE FILES
+
+# Documentation files (hapus semua)
+BEAUTIFUL_UI_GUIDE.md
+BEFORE_AFTER_COMPARISON.md
+IMAGE_UPLOAD_GUIDE.md
+PENERBIT_DASHBOARD_GUIDE.md
+QUICK_START.md
+README.md
+README.txt
+README_FIXES.md
+TESTING_REPORT.md
+TIKTOK_STYLE_GUIDE.md
+UI_IMPROVEMENT_GUIDE.md
+
+# Old/duplicate auth UI files
+auth_ui.py
+auth_ui_fixed.py
+auth_ui_beautiful.py
+auth_ui_enhanced.py
+
+# Old database modules
+db.py
+app_config.py
+app_db.py
+
+# Old main files
+integrated_main.py
+integrated_main_with_monitoring.py
+main_beautiful.py
+main_enhanced.py
+main_fixed.py
+main_tiktok_style.py
+
+# Test/demo files
+connect_test.py
+demo_penerbit_dashboard.py
+print_db_url.py
+set_admin_pw.py
+test_connect_verbose.py
+test_suite.py
+
+# Build files
+build_crypto_insight.bat
+build_simple.ps1
+crypto_insight_installer.iss
+main.spec
+set_env_and_run_safe.ps1
+
+# Other files
+gitignore.txt
+register_form.py
+style.qss
+TATIAAAAa.html
