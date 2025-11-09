@@ -1,0 +1,310 @@
+# run_migration_auto.py - Auto-detect config.ini format
+"""
+Script untuk run migration Phase 1
+Otomatis detect format config.ini apapun
+TIDAK PERLU EDIT APAPUN!
+"""
+
+import psycopg2
+import sys
+import configparser
+import re
+
+def find_database_url():
+    """Find DATABASE_URL from config.ini in any format"""
+    
+    try:
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        
+        # Try all possible combinations
+        possible_keys = [
+            ('database', 'DATABASE_URL'),
+            ('database', 'database_url'),
+            ('database', 'url'),
+            ('DATABASE', 'URL'),
+            ('DATABASE', 'DATABASE_URL'),
+            ('postgresql', 'url'),
+            ('postgresql', 'database_url'),
+            ('postgresql', 'DATABASE_URL'),
+        ]
+        
+        for section, key in possible_keys:
+            if config.has_section(section) and config.has_option(section, key):
+                url = config.get(section, key)
+                if url and url.startswith('postgresql'):
+                    return url
+        
+        # If not found, search in all sections
+        for section in config.sections():
+            for key, value in config.items(section):
+                if 'url' in key.lower() and value.startswith('postgresql'):
+                    return value
+        
+        return None
+        
+    except Exception as e:
+        print(f"   ❌ Error reading config: {e}")
+        return None
+
+
+def run_migration():
+    """Run the Phase 1 migration script"""
+    
+    print()
+    print("=" * 60)
+    print("🚀 CRYPTO INSIGHT - PHASE 1 MIGRATION")
+    print("=" * 60)
+    print()
+    
+    # Step 1: Read config.ini
+    print("📖 Step 1: Reading config.ini...")
+    
+    try:
+        with open('config.ini', 'r') as f:
+            config_content = f.read()
+        print("   ✅ Config file found")
+    except FileNotFoundError:
+        print("   ❌ ERROR: config.ini not found!")
+        print("   💡 Make sure this script is in the same folder as config.ini")
+        return False
+    
+    # Find DATABASE_URL
+    DATABASE_URL = find_database_url()
+    
+    if not DATABASE_URL:
+        print("   ❌ ERROR: DATABASE_URL not found in config.ini")
+        print()
+        print("   📋 Your config.ini content:")
+        print("   " + "-" * 50)
+        
+        # Show config but hide password
+        safe_content = re.sub(
+            r'(password\s*=\s*|:[^:@]+@)',
+            r'\1***HIDDEN***',
+            config_content,
+            flags=re.IGNORECASE
+        )
+        for line in safe_content.split('\n')[:20]:  # Show first 20 lines
+            print(f"   {line}")
+        
+        print("   " + "-" * 50)
+        print()
+        print("   💡 Please add DATABASE_URL to your config.ini:")
+        print()
+        print("   [database]")
+        print("   DATABASE_URL = postgresql://user:pass@host:port/db")
+        print()
+        print("   (Get this from Railway → Postgres → Variables tab)")
+        return False
+    
+    print("   ✅ DATABASE_URL found")
+    
+    # Show connection info (hide password)
+    try:
+        if '@' in DATABASE_URL:
+            host_part = DATABASE_URL.split('@')[1].split('/')[0].split(':')[0]
+            print(f"   🔗 Host: {host_part}")
+    except:
+        pass
+    
+    print()
+    
+    # Step 2: Read migration file
+    print("📄 Step 2: Reading migration file...")
+    try:
+        with open('migration_phase1.sql', 'r', encoding='utf-8') as f:
+            sql = f.read()
+        print("   ✅ Migration file loaded")
+        print(f"   📊 File size: {len(sql)} characters")
+    except FileNotFoundError:
+        print("   ❌ ERROR: migration_phase1.sql not found!")
+        print("   💡 Make sure migration_phase1.sql is in the same folder")
+        return False
+    except Exception as e:
+        print(f"   ❌ ERROR reading file: {e}")
+        return False
+    
+    print()
+    
+    # Step 3: Connect to database
+    print("🔌 Step 3: Connecting to database...")
+    try:
+        print("   🔄 Connecting...")
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        print("   ✅ Connected successfully!")
+        
+    except psycopg2.OperationalError as e:
+        print(f"   ❌ CONNECTION FAILED!")
+        print(f"   💡 Error: {e}")
+        print()
+        print("   🔧 Troubleshooting:")
+        print("   1. Check if DATABASE_URL in config.ini is correct")
+        print("   2. Check if Railway database is running")
+        print("   3. Check internet connection")
+        return False
+    except Exception as e:
+        print(f"   ❌ ERROR: {e}")
+        return False
+    
+    print()
+    
+    # Step 4: Run migration
+    print("⚙️  Step 4: Running migration script...")
+    try:
+        cur = conn.cursor()
+        
+        print("   🔄 Executing SQL commands...")
+        print("   ⏳ This may take 10-20 seconds...")
+        cur.execute(sql)
+        
+        print("   💾 Committing changes...")
+        conn.commit()
+        
+        print("   ✅ Migration executed successfully!")
+        
+    except psycopg2.Error as e:
+        error_msg = str(e).lower()
+        
+        if "already exists" in error_msg:
+            print("   ℹ️  Tables/columns already exist")
+            print("   This is OK if you ran migration before.")
+            conn.rollback()
+            # Continue to verify
+        else:
+            print(f"   ❌ SQL ERROR!")
+            print(f"   💡 Error: {e}")
+            conn.rollback()
+            conn.close()
+            return False
+            
+    except Exception as e:
+        print(f"   ❌ ERROR: {e}")
+        conn.rollback()
+        conn.close()
+        return False
+    
+    print()
+    
+    # Step 5: Verify
+    print("🔍 Step 5: Verifying migration...")
+    try:
+        cur = conn.cursor()
+        
+        # Check tables
+        cur.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_name IN ('article_likes', 'article_bookmarks', 'article_views')
+            ORDER BY table_name;
+        """)
+        
+        tables = cur.fetchall()
+        
+        print(f"   📋 Tables found: {len(tables)}/3")
+        if len(tables) >= 3:
+            print("   ✅ All required tables exist:")
+            for table in tables:
+                print(f"      • {table[0]}")
+        else:
+            print(f"   ⚠️  Warning: Expected 3 tables, found {len(tables)}")
+            if tables:
+                for table in tables:
+                    print(f"      • {table[0]}")
+        
+        print()
+        
+        # Check columns
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'news' 
+            AND column_name IN ('views', 'like_count', 'bookmark_count')
+            ORDER BY column_name;
+        """)
+        
+        columns = cur.fetchall()
+        
+        print(f"   📋 Columns in news table: {len(columns)}/3")
+        if len(columns) >= 3:
+            print("   ✅ All required columns exist:")
+            for col in columns:
+                print(f"      • {col[0]}")
+        else:
+            print(f"   ⚠️  Warning: Expected 3 columns, found {len(columns)}")
+        
+        print()
+        
+        # Get counts
+        try:
+            cur.execute("SELECT COUNT(*) FROM article_likes")
+            likes_count = cur.fetchone()[0]
+            
+            cur.execute("SELECT COUNT(*) FROM article_bookmarks")
+            bookmarks_count = cur.fetchone()[0]
+            
+            cur.execute("SELECT COUNT(*) FROM article_views")
+            views_count = cur.fetchone()[0]
+            
+            print("   📊 Current data:")
+            print(f"      • Likes: {likes_count}")
+            print(f"      • Bookmarks: {bookmarks_count}")
+            print(f"      • Views: {views_count}")
+        except:
+            pass
+        
+    except Exception as e:
+        print(f"   ⚠️  Verification warning: {e}")
+    
+    # Close connection
+    conn.close()
+    
+    print()
+    print("=" * 60)
+    print("🎉 MIGRATION COMPLETED SUCCESSFULLY!")
+    print("=" * 60)
+    print()
+    print("✅ Database is ready for Phase 1 features!")
+    print()
+    print("📋 Next steps:")
+    print("   1. Test backend:")
+    print("      python app_db_interactions.py")
+    print()
+    print("   2. Run application:")
+    print("      python main.py")
+    print()
+    
+    return True
+
+
+if __name__ == "__main__":
+    print()
+    
+    # Check if required files exist
+    import os
+    
+    if not os.path.exists('config.ini'):
+        print("❌ ERROR: config.ini not found in current directory")
+        print("💡 Make sure you run this script from the crypto folder")
+        print()
+        sys.exit(1)
+    
+    if not os.path.exists('migration_phase1.sql'):
+        print("❌ ERROR: migration_phase1.sql not found in current directory")
+        print("💡 Make sure migration_phase1.sql is in the same folder")
+        print()
+        sys.exit(1)
+    
+    # Run migration
+    success = run_migration()
+    
+    print()
+    
+    if success:
+        print("🎊 All done! Phase 1 features are ready to use!")
+        print()
+        sys.exit(0)
+    else:
+        print("❌ Migration failed. Please check the errors above.")
+        print()
+        sys.exit(1)

@@ -1,4 +1,4 @@
-# main_enhanced.py — Launcher untuk Enhanced Auth UI
+# main.py — Launcher untuk Crypto Insight dengan TikTok Style Auth UI
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer
@@ -39,7 +39,7 @@ class SplashScreen(QtWidgets.QWidget):
         self.title.setWordWrap(True)
         
         # Subtitle
-        self.subtitle = QtWidgets.QLabel("Enhanced Edition")
+        self.subtitle = QtWidgets.QLabel("TikTok Style Edition")
         self.subtitle.setObjectName("subtitleText")
 
         # Loading animation
@@ -106,7 +106,7 @@ class SplashScreen(QtWidgets.QWidget):
         self.loading_label.setText(f"Loading{dots_text}")
 
 def main():
-    """Launch Enhanced Auth UI"""
+    """Launch TikTok Style Auth UI"""
     
     app = QtWidgets.QApplication(sys.argv)
     
@@ -114,7 +114,8 @@ def main():
     app.setFont(QtGui.QFont("Segoe UI", 10))
     
     try:
-        from auth_ui_enhanced import EnhancedAuthWindow
+        # Import TikTok Style Auth Window
+        from auth_ui_tiktok_style import TikTokAuthWindow
         
         # Create splash screen
         splash = SplashScreen()
@@ -128,7 +129,7 @@ def main():
         splash.show()
         
         # Create main window
-        main_window = EnhancedAuthWindow()
+        main_window = TikTokAuthWindow()
         
         # Function to switch windows
         def show_main_window():
@@ -153,9 +154,11 @@ def main():
         msg.setWindowTitle("Import Error")
         msg.setText(f"Failed to import required modules:\n\n{str(e)}\n\n"
                    "Required files:\n"
-                   "- auth_ui_enhanced.py\n"
+                   "- auth_ui_tiktok_style.py\n"
                    "- app_db_fixed.py\n"
-                   "- modern_notification.py")
+                   "- modern_notification.py\n"
+                   "- dashboard_ui.py\n"
+                   "- user_dashboard.py")
         msg.exec_()
         sys.exit(1)
         
